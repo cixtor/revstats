@@ -34,6 +34,7 @@ $ cat ~/.revstats.json
 
 GitHub not only counts the number commits and pull-requests but also when you open an issue. If you are using this tool offline it is be a good idea to include references to public issues that you have open so far.
 
+- [x] _(2012-07-06)_ Joined GitHub
 - [x] _(2013-06-24)_ gbrindisi/xsssniper/issues/4
 - [x] _(2013-06-24)_ RandomStorm/DVWA/issues/3
 - [x] _(2013-06-24)_ RandomStorm/DVWA/issues/2

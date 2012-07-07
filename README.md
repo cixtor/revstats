@@ -69,6 +69,7 @@ GitHub not only counts the number commits and pull-requests but also when you op
 - [x] _(2016-07-05)_ sucuri/sucuri-wordpress-plugin/pull/15
 - [x] _(2016-07-06)_ sucuri/sucuri-wordpress-plugin/pull/16
 - [x] _(2016-07-06)_ sucuri/sucuri-wordpress-plugin/pull/17
+- [x] _(2016-10-01)_ dz0ny/gobu/commit/8b5162f
 
 ### License
 

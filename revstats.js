@@ -485,29 +485,32 @@ var longestStreak = function (commits) {
     for (var week = 0; week < weeks; week++) {
         for (var day in commits.weekdays) {
             weekday = commits.weekdays[day];
-            data = commits.unified[weekday][week];
 
-            if (data.date === commits.todayDate) {
-                finished = true;
-            }
+            if (commits.unified[weekday].hasOwnProperty(week)) {
+                data = commits.unified[weekday][week];
 
-            if (data.commits === 0) {
-                history.marks.push(streak.marks);
-                history.days.push(streak.days);
-                streak.marks = 0;
-                streak.days = 0;
-
-                if (printMissing && started && !finished) {
-                    console.log(
-                        '\x20\x20\x20\x20\x20',
-                        'Missing commit:',
-                        data.date
-                    );
+                if (data.date === commits.todayDate) {
+                    finished = true;
                 }
-            } else if (data.commits > 0) {
-                started = true; /* Started contributions */
-                streak.days += 1; /* Count contributions */
-                streak.marks += data.commits; /* Count commits */
+
+                if (data.commits === 0) {
+                    history.marks.push(streak.marks);
+                    history.days.push(streak.days);
+                    streak.marks = 0;
+                    streak.days = 0;
+
+                    if (printMissing && started && !finished) {
+                        console.log(
+                            '\x20\x20\x20\x20\x20',
+                            'Missing commit:',
+                            data.date
+                        );
+                    }
+                } else if (data.commits > 0) {
+                    started = true; /* Started contributions */
+                    streak.days += 1; /* Count contributions */
+                    streak.marks += data.commits; /* Count commits */
+                }
             }
         }
     }

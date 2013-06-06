@@ -25,6 +25,8 @@ $ cat ~/.revstats.json
 - [x] `-details` — Displays streak and productivity data.
 - [x] `-missing` — Displays empty days between the calendar.
 - [x] `-color` — Colors for the calendar: yellow, blue, red, green, purple, mixed
+- [x] `-repo` — Displays the contributions in a specific repository
+- [x] `-year` — Displays the contributions in a specific year
 
 ![Contribution Calendar](screenshot.png)
 

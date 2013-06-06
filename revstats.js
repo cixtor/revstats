@@ -52,7 +52,8 @@ var printUsageAndOptions = function() {
     println('  -details   Displays streak and productivity data.');
     println('  -missing   Displays empty days between the calendar.');
     println('  -color     Colors for the calendar: yellow, blue, red, green, purple, mixed');
-    println('  -year      Displays the contributions for a specific year');
+    println('  -repo      Displays the contributions in a specific repository');
+    println('  -year      Displays the contributions in a specific year');
     process.exit(2);
 };
 
@@ -647,7 +648,14 @@ fsys.readFile(settings, 'utf8', function (err, content) {
         println('Missing ~/.revstats.json file');
         printUsageAndOptions();
     } else {
-        var projects = JSON.parse(content);
+        var projects = [/* Empty list */];
+        var repo = flag('repo', true);
+
+        if (fileExists(repo)) {
+            projects = [repo];
+        } else {
+            projects = JSON.parse(content);
+        }
 
         getAllCommits(projects, function (commits) {
             var stats = countCommits(commits);

@@ -52,6 +52,7 @@ var printUsageAndOptions = function() {
     println('  -details   Displays streak and productivity data.');
     println('  -missing   Displays empty days between the calendar.');
     println('  -color     Colors for the calendar: yellow, blue, red, green, purple, mixed');
+    println('  -year      Displays the contributions for a specific year');
     process.exit(2);
 };
 
@@ -567,11 +568,15 @@ var printCalendarHeader = function (year, calendar) {
 var renderCalendar = function (commits) {
     var productivity = getProductivityStats(commits);
     var yearCommits = {/* Empty object */};
+    var filterYear = flag('year', true);
     var colors = getCalendarColors();
     var commitsPerDay = 0;
 
+    // Convert filtered year into a valid integer.
+    filterYear = parseInt(filterYear);
+
     for (var year in commits.calendar) {
-        if (commits.calendar.hasOwnProperty(year)) {
+        if ((!filterYear || parseInt(year) === filterYear)) {
             yearCommits = commits.calendar[year];
 
             printCalendarHeader(year, yearCommits);

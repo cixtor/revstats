@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+/* jshint maxdepth: 6 */
+/* jshint forin: false */
 
 /**
  * Revision Control Statistics
@@ -33,19 +35,23 @@ Math.maxInArray = function (list) {
     return Math.max.apply(null, list);
 };
 
+var println = function(text) {
+    process.stdout.write(text + '\n');
+};
+
 var printUsageAndOptions = function() {
-    console.log('Revision Control Statistics');
-    console.log('  http://cixtor.com/');
-    console.log('  https://github.com/cixtor/revstats');
-    console.log('  https://en.wikipedia.org/wiki/Revision_control');
-    console.log('  https://en.wikipedia.org/wiki/Git_(software)');
-    console.log('  https://en.wikipedia.org/wiki/Mercurial');
-    console.log('  https://en.wikipedia.org/wiki/Apache_Subversion');
-    console.log('Usage:');
-    console.log('  -help      Displays this message.');
-    console.log('  -details   Displays streak and productivity data.');
-    console.log('  -missing   Displays empty days between the calendar.');
-    console.log('  -color     Colors for the calendar: yellow, blue, red, green, purple, mixed');
+    println('Revision Control Statistics');
+    println('  http://cixtor.com/');
+    println('  https://github.com/cixtor/revstats');
+    println('  https://en.wikipedia.org/wiki/Revision_control');
+    println('  https://en.wikipedia.org/wiki/Git_(software)');
+    println('  https://en.wikipedia.org/wiki/Mercurial');
+    println('  https://en.wikipedia.org/wiki/Apache_Subversion');
+    println('Usage:');
+    println('  -help      Displays this message.');
+    println('  -details   Displays streak and productivity data.');
+    println('  -missing   Displays empty days between the calendar.');
+    println('  -color     Colors for the calendar: yellow, blue, red, green, purple, mixed');
     process.exit(2);
 };
 
@@ -131,11 +137,28 @@ var getMonthAbbrs = function () {
     ];
 };
 
+var yearFromTime = function (ts) {
+    return new Date(ts * 1000).getFullYear();
+};
+
 var weekdayFromTime = function (ts) {
     var weekdays = getWeekdays();
     var dref = new Date(ts * 1000);
 
     return weekdays[dref.getDay()];
+};
+
+var getEmptyCalendar = function () {
+    var weekdays = getWeekdays();
+    var calendar = {/* Empty object */};
+
+    for (var idx in weekdays) {
+        if (weekdays.hasOwnProperty(idx)) {
+            calendar[weekdays[idx]] = [/* Empty list */];
+        }
+    }
+
+    return calendar;
 };
 
 var fileExists = function (path) {
@@ -250,27 +273,54 @@ var countCommits = function (commits) {
         }
 
         var oneday = secondsPerDay();
-        var current = new Date(oldest * 1000);
-        var initial = current.getTime() / 1000;
+        var inidate = new Date(oldest * 1000);
+        var initial = inidate.getTime() / 1000;
         var maximum = Math.ceil((newest - oldest) / oneday);
         var final = initial + (oneday * maximum);
-        var today = Math.floor(new Date().getTime() / 1000);
-        var lastYear = today - (365 * oneday);
 
-        if (lastYear < initial) {
-            initial = lastYear;
-        }
+        /**
+         * Fix initial date of the oldest commit.
+         *
+         * If the oldest commit starts in the middle of the year we have to
+         * recalculate the initial date to start from Jan 01 of the same year,
+         * this will give us the ability to render a full calendar as we will
+         * have access to all days.
+         */
+        var oldYear = new Date(initial * 1000).getFullYear();
+        var oldDate = (oldYear).toString() + '-01-01 00:00:01';
+        initial = new Date(oldDate).getTime();
 
-        if (today > final) {
-            final = today;
-        }
+        /**
+         * Fix final date of the newest commit.
+         *
+         * If the newest commit finishes in the middle of the year we have to
+         * recalculate the final date to end at Dec 31 of the same year, this
+         * will give us the ability to render a full calendar as we will have
+         * access to all days.
+         */
+        var newYear = new Date(final * 1000).getFullYear();
+        var newDate = (newYear).toString() + '-12-31 23:59:59';
+        final = new Date(newDate).getTime();
+
+        // Mark today as the last contribution.
+        var today = new Date();
+        var todayTime = (today.getTime() / 1000);
+        var todayDate = yyyymmdd(todayTime);
+
+        // Calculate total years.
+        var years = (newYear - oldYear);
+        initial = (initial / 1000);
+        final = (final / 1000);
 
         return {
+            todayDate: todayDate,
+            todayTime: todayTime,
             history: history,
             initial: initial,
             oldest: oldest,
             newest: newest,
-            final: final
+            final: final,
+            years: years
         };
     }
 
@@ -278,29 +328,28 @@ var countCommits = function (commits) {
 };
 
 var populateCalendar = function (commits) {
-    var calendar = {
-        'Sun': [],
-        'Mon': [],
-        'Tue': [],
-        'Wed': [],
-        'Thu': [],
-        'Fri': [],
-        'Sat': [],
-    };
-    var weekdays = Object.keys(calendar);
+    var calendar = {/* Empty object */};
+    var unified = getEmptyCalendar();
+    var data = {/* Empty object */};
+    var weekdays = getWeekdays();
     var oneday = secondsPerDay();
     var quantity = 0;
     var counter = 0;
     var weekday = 0;
     var weeks = 0;
+    var year = 0;
     var date;
 
     for (var ts = commits.initial; ts < commits.final; ts += oneday) {
-        weeks++;
-        counter++;
-
         date = yyyymmdd(ts);
+        year = yearFromTime(ts);
         weekday = weekdayFromTime(ts);
+
+        // Append weekdays in empty year.
+        if (!calendar.hasOwnProperty(year)) {
+            calendar[year] = getEmptyCalendar();
+            weeks = 1 /* Reset first year week */;
+        }
 
         /**
          * Add padding on first calendar week.
@@ -312,12 +361,15 @@ var populateCalendar = function (commits) {
          */
         if (weeks === 1) {
             for (var wday in weekdays) {
-                if (weekdays.hasOwnProperty(wday)) {
-                    if (weekdays[wday] === weekday) {
-                        break;
-                    }
+                if (weekdays[wday] === weekday) {
+                    break;
+                }
 
-                    calendar[weekdays[wday]].push({date: null, commits: -1});
+                data = {date: null, commits: -1};
+                calendar[year][weekdays[wday]].push(data);
+
+                if (counter === 0) { /* Only first week */
+                    unified[weekdays[wday]].push(data);
                 }
             }
         }
@@ -328,11 +380,16 @@ var populateCalendar = function (commits) {
             quantity = 0;
         }
 
-        calendar[weekday].push({date: date, commits: quantity});
+        data = {date: date, commits: quantity};
+        calendar[year][weekday].push(data);
+        unified[weekday].push(data);
+        counter++;
+        weeks++;
     }
 
     commits.calendar = calendar;
     commits.weekdays = weekdays;
+    commits.unified = unified;
 
     return commits;
 };
@@ -415,39 +472,40 @@ var weeksInCalendar = function (calendar) {
 };
 
 var longestStreak = function (commits) {
-    var abbr;
-    var quantity = 0;
+    var weekday, weeks, data;
+    var started = false;
+    var finished = false;
     var streak = {days: 0, marks: 0};
     var history = {days: [], marks: []};
-    var weeks = weeksInCalendar(commits.calendar);
     var printMissing = flag('missing');
+    weeks = weeksInCalendar(commits.unified);
 
     for (var week = 0; week < weeks; week++) {
         for (var day in commits.weekdays) {
-            if (commits.weekdays.hasOwnProperty(day)) {
-                abbr = commits.weekdays[day];
+            weekday = commits.weekdays[day];
+            data = commits.unified[weekday][week];
 
-                if (commits.calendar[abbr].hasOwnProperty(week)) {
-                    quantity = commits.calendar[abbr][week].commits;
+            if (data.date === commits.todayDate) {
+                finished = true;
+            }
 
-                    if (quantity === 0) {
-                        history.marks.push(streak.marks);
-                        history.days.push(streak.days);
-                        streak.marks = 0;
-                        streak.days = 0;
+            if (data.commits === 0) {
+                history.marks.push(streak.marks);
+                history.days.push(streak.days);
+                streak.marks = 0;
+                streak.days = 0;
 
-                        if (printMissing === true) {
-                            console.log(
-                                '\x20\x20\x20\x20\x20',
-                                'Missing commit:',
-                                commits.calendar[abbr][week].date
-                            );
-                        }
-                    } else {
-                        streak.days += 1; /* Count contributions */
-                        streak.marks += quantity; /* Count commits */
-                    }
+                if (printMissing && started && !finished) {
+                    console.log(
+                        '\x20\x20\x20\x20\x20',
+                        'Missing commit:',
+                        data.date
+                    );
                 }
+            } else if (data.commits > 0) {
+                started = true; /* Started contributions */
+                streak.days += 1; /* Count contributions */
+                streak.marks += data.commits; /* Count commits */
             }
         }
     }
@@ -462,7 +520,7 @@ var longestStreak = function (commits) {
     };
 };
 
-var printCalendarHeader = function (calendar) {
+var printCalendarHeader = function (year, calendar) {
     var months = getMonthAbbrs();
     var header = [];
     var month = null;
@@ -486,7 +544,8 @@ var printCalendarHeader = function (calendar) {
             }
         }
 
-        process.stdout.write('\x20\x20\x20\x20\x20\x20\x20');
+        process.stdout.write(year);
+        process.stdout.write('\u0020\u0020');
 
         for (var part in header) {
             if (header.hasOwnProperty(part)) {
@@ -507,24 +566,33 @@ var printCalendarHeader = function (calendar) {
 
 var renderCalendar = function (commits) {
     var productivity = getProductivityStats(commits);
+    var yearCommits = {/* Empty object */};
     var colors = getCalendarColors();
     var commitsPerDay = 0;
 
-    printCalendarHeader(commits.calendar);
+    for (var year in commits.calendar) {
+        if (commits.calendar.hasOwnProperty(year)) {
+            yearCommits = commits.calendar[year];
 
-    for (var abbr in commits.calendar) {
-        if (commits.calendar.hasOwnProperty(abbr)) {
-            var todalDays = commits.calendar[abbr].length;
+            printCalendarHeader(year, yearCommits);
 
-            process.stdout.write(abbr + '\x20\x20\x20');
+            for (var weekday in yearCommits) {
+                if (yearCommits.hasOwnProperty(weekday)) {
+                    var todalDays = yearCommits[weekday].length;
 
-            for (var key = 0; key < todalDays; key++) {
-                commitsPerDay = commits.calendar[abbr][key].commits;
+                    process.stdout.write(weekday + '\u0020\u0020\u0020');
 
-                if (commitsPerDay === 0) {
-                    process.stdout.write('\u001b[0;90m\u2591\u001b[0m');
-                } else {
-                    colorizeCommits(colors, commitsPerDay, productivity.most);
+                    for (var key = 0; key < todalDays; key++) {
+                        commitsPerDay = yearCommits[weekday][key].commits;
+
+                        if (commitsPerDay === 0) {
+                            process.stdout.write('\u001b[0;90m\u2591\u001b[0m');
+                        } else {
+                            colorizeCommits(colors, commitsPerDay, productivity.most);
+                        }
+                    }
+
+                    process.stdout.write('\n');
                 }
             }
 
@@ -571,7 +639,7 @@ if (flag('help')) {
 
 fsys.readFile(settings, 'utf8', function (err, content) {
     if (err) {
-        console.log('Missing ~/.revstats.json file');
+        println('Missing ~/.revstats.json file');
         printUsageAndOptions();
     } else {
         var projects = JSON.parse(content);

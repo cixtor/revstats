@@ -533,6 +533,13 @@ var renderCalendar = function (commits) {
     }
 
     if (commits.calendar && (flag('details') || flag('missing'))) {
+        var colorScale = '';
+        process.stdout.write('\x20\x20\x20\x20\x20\x20');
+        for (var idx = 0; idx < 5; idx++) {
+            colorScale += colors[idx] + colors[idx];
+        }
+        process.stdout.write('Less ' + colorScale + ' More\n');
+
         process.stdout.write('\x20\x20\x20\x20\x20\x20');
         process.stdout.write('Oldest: ' + new Date(commits.oldest * 1000).toString() + '\n');
 

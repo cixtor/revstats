@@ -453,7 +453,7 @@ var longestStreak = function (commits) {
     }
 
     // Append most recent streak.
-    history.marks.push(streak.days);
+    history.days.push(streak.days);
     history.marks.push(streak.marks);
 
     return {

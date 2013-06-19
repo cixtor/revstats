@@ -416,11 +416,11 @@ var weeksInCalendar = function (calendar) {
 
 var longestStreak = function (commits) {
     var abbr;
-    var streak = 0;
     var quantity = 0;
-    var streakHistory = [];
-    var printMissing = flag('missing');
+    var streak = {days: 0, marks: 0};
+    var history = {days: [], marks: []};
     var weeks = weeksInCalendar(commits.calendar);
+    var printMissing = flag('missing');
 
     for (var week = 0; week < weeks; week++) {
         for (var day in commits.weekdays) {
@@ -431,8 +431,10 @@ var longestStreak = function (commits) {
                     quantity = commits.calendar[abbr][week].commits;
 
                     if (quantity === 0) {
-                        streakHistory.push(streak);
-                        streak = 0;
+                        history.marks.push(streak.marks);
+                        history.days.push(streak.days);
+                        streak.marks = 0;
+                        streak.days = 0;
 
                         if (printMissing === true) {
                             console.log(
@@ -442,8 +444,8 @@ var longestStreak = function (commits) {
                             );
                         }
                     } else {
-                        streak += quantity; /* Count commits */
-                        // streak++; /* Count contributions */
+                        streak.days += 1; /* Count contributions */
+                        streak.marks += quantity; /* Count commits */
                     }
                 }
             }
@@ -451,9 +453,13 @@ var longestStreak = function (commits) {
     }
 
     // Append most recent streak.
-    streakHistory.push(streak);
+    history.marks.push(streak.days);
+    history.marks.push(streak.marks);
 
-    return Math.maxInArray(streakHistory);
+    return {
+        days: Math.maxInArray(history.days),
+        marks: Math.maxInArray(history.marks)
+    };
 };
 
 var printCalendarHeader = function (calendar) {
@@ -544,7 +550,9 @@ var renderCalendar = function (commits) {
 
         var streak = longestStreak(commits);
         process.stdout.write('\x20\x20\x20\x20\x20\x20');
-        process.stdout.write('Longest Streak: ' + streak + '\n');
+        process.stdout.write('Longest Streak: ' + streak.marks + ' commits\n');
+        process.stdout.write('\x20\x20\x20\x20\x20\x20');
+        process.stdout.write('Longest Streak: ' + streak.days + ' days\n');
     }
 };
 

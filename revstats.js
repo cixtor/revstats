@@ -119,12 +119,23 @@ var yyyymmdd = function (ts, gmt) {
     return (year + '-' + month + '-' + day);
 };
 
-var weekdayFromTime = function (ts) {
-    var dref = new Date(ts * 1000);
-    var weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    var weekday = weekdays[dref.getDay()];
+var getWeekdays = function () {
+    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+};
 
-    return weekday;
+var getMonthAbbrs = function () {
+    return [
+        'Jan', 'Feb', 'Mar', 'Apr',
+        'May', 'Jun', 'Jul', 'Aug',
+        'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+};
+
+var weekdayFromTime = function (ts) {
+    var weekdays = getWeekdays();
+    var dref = new Date(ts * 1000);
+
+    return weekdays[dref.getDay()];
 };
 
 var fileExists = function (path) {
@@ -446,21 +457,40 @@ var longestStreak = function (commits) {
 };
 
 var printCalendarHeader = function (calendar) {
-    var date, month, lastMonth;
-    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May',
-    'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var months = getMonthAbbrs();
+    var header = [];
+    var month = null;
+    var counter = -1;
+    var lastMonth = null;
+    var partLength = 0;
+    var partDiff = 0;
 
     if (calendar !== undefined) {
-        process.stdout.write('\x20\x20\x20\x20\x20\x20');
-
-        for (var key in calendar.Sun) {
-            if (calendar.Sun.hasOwnProperty(key)) {
-                date = new Date(calendar.Sun[key].date);
-                month = date.getMonth();
+        for (var index in calendar.Sun) {
+            if (calendar.Sun.hasOwnProperty(index) && index > 0) {
+                month = new Date(calendar.Sun[index].date).getMonth();
 
                 if (month !== lastMonth) {
                     lastMonth = month;
-                    process.stdout.write(months[month] + '\x20');
+                    header.push(months[month]);
+                    counter++;
+                } else {
+                    header[counter] += '\u0020';
+                }
+            }
+        }
+
+        process.stdout.write('\x20\x20\x20\x20\x20\x20\x20');
+
+        for (var part in header) {
+            if (header.hasOwnProperty(part)) {
+                partLength = header[part].length;
+
+                if (partLength >= 5) {
+                    partDiff = (partLength - 2);
+                    process.stdout.write(header[part].slice(0, partDiff));
+                } else {
+                    process.stdout.write('\u0020');
                 }
             }
         }

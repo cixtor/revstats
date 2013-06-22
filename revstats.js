@@ -49,61 +49,19 @@ var printUsageAndOptions = function() {
     process.exit(2);
 };
 
-var defaultColorFamily = function () {
+var defaultColorScheme = function () {
     return 'green';
 };
 
-var getColorFamily = function (family) {
-    var families = {
-        'mixed': [
-            '\u001b[48;5;001m\u0020\u001b[0m',
-            '\u001b[48;5;003m\u0020\u001b[0m',
-            '\u001b[48;5;005m\u0020\u001b[0m',
-            '\u001b[48;5;004m\u0020\u001b[0m',
-            '\u001b[48;5;002m\u0020\u001b[0m',
-        ],
-        'yellow': [
-            '\u001b[48;5;226m\u0020\u001b[0m',
-            '\u001b[48;5;220m\u0020\u001b[0m',
-            '\u001b[48;5;214m\u0020\u001b[0m',
-            '\u001b[48;5;208m\u0020\u001b[0m',
-            '\u001b[48;5;202m\u0020\u001b[0m',
-        ],
-        'blue': [
-            '\u001b[48;5;045m\u0020\u001b[0m',
-            '\u001b[48;5;039m\u0020\u001b[0m',
-            '\u001b[48;5;033m\u0020\u001b[0m',
-            '\u001b[48;5;027m\u0020\u001b[0m',
-            '\u001b[48;5;021m\u0020\u001b[0m',
-        ],
-        'red': [
-            '\u001b[48;5;196m\u0020\u001b[0m',
-            '\u001b[48;5;197m\u0020\u001b[0m',
-            '\u001b[48;5;198m\u0020\u001b[0m',
-            '\u001b[48;5;199m\u0020\u001b[0m',
-            '\u001b[48;5;200m\u0020\u001b[0m',
-        ],
-        'green': [
-            '\u001b[48;5;047m\u0020\u001b[0m',
-            '\u001b[48;5;041m\u0020\u001b[0m',
-            '\u001b[48;5;035m\u0020\u001b[0m',
-            '\u001b[48;5;029m\u0020\u001b[0m',
-            '\u001b[48;5;023m\u0020\u001b[0m',
-        ],
-        'purple': [
-            '\u001b[48;5;117m\u0020\u001b[0m',
-            '\u001b[48;5;111m\u0020\u001b[0m',
-            '\u001b[48;5;105m\u0020\u001b[0m',
-            '\u001b[48;5;099m\u0020\u001b[0m',
-            '\u001b[48;5;093m\u0020\u001b[0m',
-        ],
+var availableColorSchemes = function () {
+    return {
+        'mixed':  ['001', '003', '005', '004', '002'],
+        'yellow': ['226', '220', '214', '208', '202'],
+        'blue':   ['045', '039', '033', '027', '021'],
+        'red':    ['196', '197', '198', '199', '200'],
+        'green':  ['047', '041', '035', '029', '023'],
+        'purple': ['117', '111', '105', '099', '093'],
     };
-
-    if (!families.hasOwnProperty(family)) {
-        family = defaultColorFamily();
-    }
-
-    return families[family];
 };
 
 var secondsPerDay = function() {
@@ -392,9 +350,29 @@ var getProductivityStats = function (commits) {
     return {most: mostProdDay, less: lessProdDay};
 };
 
-var colorizeCommits = function (quantity, most) {
-    var colors = getColorFamily(flag('color', true));
+var getColorScheme = function () {
+    var color = flag('color', true);
+    var schemes = availableColorSchemes();
 
+    if (!schemes.hasOwnProperty(color)) {
+        color = defaultColorScheme();
+    }
+
+    return schemes[color];
+};
+
+var getCalendarColors = function () {
+    var colors = getColorScheme();
+    var template = '\u001b[48;5;{{COLOR}}m\u0020\u001b[0m';
+
+    colors = colors.map(function (color) {
+        return template.replace('{{COLOR}}', color);
+    });
+
+    return colors;
+};
+
+var colorizeCommits = function (colors, quantity, most) {
     if (quantity === -1) {
         process.stdout.write('\u0020');
     } else {
@@ -490,6 +468,7 @@ var printCalendarHeader = function (calendar) {
 
 var renderCalendar = function (commits) {
     var productivity = getProductivityStats(commits);
+    var colors = getCalendarColors();
     var commitsPerDay = 0;
 
     printCalendarHeader(commits.calendar);
@@ -506,7 +485,7 @@ var renderCalendar = function (commits) {
                 if (commitsPerDay === 0) {
                     process.stdout.write('\u001b[0;90m\u2591\u001b[0m');
                 } else {
-                    colorizeCommits(commitsPerDay, productivity.most);
+                    colorizeCommits(colors, commitsPerDay, productivity.most);
                 }
             }
 

@@ -327,6 +327,7 @@ var populateCalendar = function (commits) {
 };
 
 var getProductivityStats = function (commits) {
+    var total = 0;
     var quantity = 0;
     var mostProdDay = 0;
     var lessProdDay = 1;
@@ -336,6 +337,8 @@ var getProductivityStats = function (commits) {
             quantity = commits.history[key];
 
             if (quantity > 0) {
+                total += quantity;
+
                 if (quantity > mostProdDay) {
                     mostProdDay = quantity;
                 }
@@ -347,7 +350,7 @@ var getProductivityStats = function (commits) {
         }
     }
 
-    return {most: mostProdDay, less: lessProdDay};
+    return {most: mostProdDay, less: lessProdDay, total: total};
 };
 
 var getColorScheme = function () {
@@ -505,6 +508,9 @@ var renderCalendar = function (commits) {
 
         process.stdout.write('\x20\x20\x20\x20\x20\x20');
         process.stdout.write('Less Productive Day: ' + productivity.less + ' commits\n');
+
+        process.stdout.write('\x20\x20\x20\x20\x20\x20');
+        process.stdout.write('Total Commits: ' + productivity.total + ' commits\n');
 
         var streak = longestStreak(commits);
         process.stdout.write('\x20\x20\x20\x20\x20\x20');

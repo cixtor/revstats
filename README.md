@@ -21,6 +21,11 @@ $ cat ~/.revstats.json
 ]
 ```
 
+- [x] `-help` — Displays usage and copyright information.
+- [x] `-details` — Displays streak and productivity data.
+- [x] `-missing` — Displays empty days between the calendar.
+- [x] `-color` — Colors for the calendar: yellow, blue, red, green, purple, mixed
+
 ![Contribution Calendar](screenshot.png)
 
 ### Public Non-Code Contributions

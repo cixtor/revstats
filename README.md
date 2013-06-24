@@ -13,6 +13,12 @@ But what about your contributions in private projects hosted in other services? 
 
 GitHub not only counts the number commits and pull-requests but also when you open an issue. If you are using this tool offline it is be a good idea to include references to public issues that you have open so far.
 
+- [x] _(2013-06-24)_ gbrindisi/xsssniper/issues/4
+- [x] _(2013-06-24)_ RandomStorm/DVWA/issues/3
+- [x] _(2013-06-24)_ RandomStorm/DVWA/issues/2
+- [x] _(2013-06-24)_ RandomStorm/DVWA/issues/1
+- [x] _(2013-06-24)_ wpscanteam/wpscan/issues/234
+- [x] _(2013-06-24)_ wpscanteam/wpscan/issues/233
 - [x] _(2013-07-27)_ Kindari/laravel-markdown/issues/1
 - [x] _(2013-08-14)_ nwjs/nw.js/issues/993
 - [x] _(2013-08-15)_ appjs/appjs/issues/381

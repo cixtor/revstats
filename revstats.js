@@ -514,7 +514,7 @@ var renderCalendar = function (commits) {
         }
     }
 
-    if (commits.calendar && flag('details')) {
+    if (commits.calendar && (flag('details') || flag('missing'))) {
         process.stdout.write('\x20\x20\x20\x20\x20\x20');
         process.stdout.write('Oldest: ' + new Date(commits.oldest * 1000).toString() + '\n');
 

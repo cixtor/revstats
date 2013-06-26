@@ -45,7 +45,65 @@ var printUsageAndOptions = function() {
     console.log('  -help      Displays this message.');
     console.log('  -details   Displays streak and productivity data.');
     console.log('  -missing   Displays empty days between the calendar.');
+    console.log('  -color     Colors for the calendar: yellow, blue, red, green, purple, mixed');
     process.exit(2);
+};
+
+var defaultColorFamily = function () {
+    return 'green';
+};
+
+var getColorFamily = function (family) {
+    var families = {
+        'mixed': [
+            '\u001b[48;5;001m\u0020\u001b[0m',
+            '\u001b[48;5;003m\u0020\u001b[0m',
+            '\u001b[48;5;005m\u0020\u001b[0m',
+            '\u001b[48;5;004m\u0020\u001b[0m',
+            '\u001b[48;5;002m\u0020\u001b[0m',
+        ],
+        'yellow': [
+            '\u001b[48;5;226m\u0020\u001b[0m',
+            '\u001b[48;5;220m\u0020\u001b[0m',
+            '\u001b[48;5;214m\u0020\u001b[0m',
+            '\u001b[48;5;208m\u0020\u001b[0m',
+            '\u001b[48;5;202m\u0020\u001b[0m',
+        ],
+        'blue': [
+            '\u001b[48;5;045m\u0020\u001b[0m',
+            '\u001b[48;5;039m\u0020\u001b[0m',
+            '\u001b[48;5;033m\u0020\u001b[0m',
+            '\u001b[48;5;027m\u0020\u001b[0m',
+            '\u001b[48;5;021m\u0020\u001b[0m',
+        ],
+        'red': [
+            '\u001b[48;5;196m\u0020\u001b[0m',
+            '\u001b[48;5;197m\u0020\u001b[0m',
+            '\u001b[48;5;198m\u0020\u001b[0m',
+            '\u001b[48;5;199m\u0020\u001b[0m',
+            '\u001b[48;5;200m\u0020\u001b[0m',
+        ],
+        'green': [
+            '\u001b[48;5;047m\u0020\u001b[0m',
+            '\u001b[48;5;041m\u0020\u001b[0m',
+            '\u001b[48;5;035m\u0020\u001b[0m',
+            '\u001b[48;5;029m\u0020\u001b[0m',
+            '\u001b[48;5;023m\u0020\u001b[0m',
+        ],
+        'purple': [
+            '\u001b[48;5;117m\u0020\u001b[0m',
+            '\u001b[48;5;111m\u0020\u001b[0m',
+            '\u001b[48;5;105m\u0020\u001b[0m',
+            '\u001b[48;5;099m\u0020\u001b[0m',
+            '\u001b[48;5;093m\u0020\u001b[0m',
+        ],
+    };
+
+    if (!families.hasOwnProperty(family)) {
+        family = defaultColorFamily();
+    }
+
+    return families[family];
 };
 
 var secondsPerDay = function() {
@@ -56,7 +114,17 @@ var homeDirectory = function() {
     return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
 };
 
-var flag = function (name) {
+var nextFlag = function (pos) {
+    var npos = parseInt(pos) + 1;
+
+    if (process.argv.hasOwnProperty(npos)) {
+        return process.argv[npos];
+    }
+
+    return null;
+};
+
+var flag = function (name, next) {
     var present = false;
     var double = '--' + name;
     var single = '-' + name;
@@ -66,6 +134,10 @@ var flag = function (name) {
             if (process.argv[arg] === double ||
                 process.argv[arg] === single
             ) {
+                if (next === true) {
+                    return nextFlag(arg);
+                }
+
                 present = true;
                 break;
             }
@@ -321,13 +393,7 @@ var getProductivityStats = function (commits) {
 };
 
 var colorizeCommits = function (quantity, most) {
-    var colors = [
-        '\u001b[48;5;051m\u0020\u001b[0m',
-        '\u001b[48;5;045m\u0020\u001b[0m',
-        '\u001b[48;5;039m\u0020\u001b[0m',
-        '\u001b[48;5;033m\u0020\u001b[0m',
-        '\u001b[48;5;027m\u0020\u001b[0m',
-    ];
+    var colors = getColorFamily(flag('color', true));
 
     if (quantity === -1) {
         process.stdout.write('\u0020');

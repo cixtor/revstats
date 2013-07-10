@@ -1,2 +1,2 @@
 #!/bin/bash
-node revstats.js "$@"
+node $(dirname $0)/revstats.js "$@"

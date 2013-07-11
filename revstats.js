@@ -70,9 +70,7 @@ var weekdayFromTime = function (ts) {
     return weekday;
 };
 
-var isGit = function (folder) {
-    var path = folder + '/.git/config';
-
+var fileExists = function (path) {
     try {
         fsys.accessSync(path, fsys.F_OK);
     } catch (e) {
@@ -82,46 +80,71 @@ var isGit = function (folder) {
     return true;
 };
 
-var isMercurial = function (folder) {
-    var path = folder + '/.hg/hgrc';
+var isGit = function (folder) {
+    return fileExists(folder + '/.git/config');
+};
 
-    try {
-        fsys.accessSync(path, fsys.F_OK);
-    } catch (e) {
-        return false;
+var isMercurial = function (folder) {
+    return fileExists(folder + '/.hg/hgrc');
+};
+
+var isSubversion = function (folder) {
+    return fileExists(folder + '/.svn/wc.db');
+};
+
+var extractTimestamps = function (output, fixTimes) {
+    var maxTimeLength = 13;
+    var lines = output.split('\n');
+
+    if (fixTimes && lines.hasOwnProperty(0)) {
+        var diff = (lines[0].length - maxTimeLength);
+        var power = Math.pow(10, diff);
+
+        lines = lines.map(function (value) {
+            return (value / power);
+        });
     }
 
-    return true;
+    return lines;
 };
 
 var getAllCommits = function (projects, callback) {
     var folder;
     var gitstats;
     var lines = [];
+    var output = '';
     var history = [];
-    var timestamps = '';
+    var fixTimes = false;
 
     for (var key in projects) {
         if (projects.hasOwnProperty(key)) {
             folder = projects[key];
 
             if (isGit(folder)) {
+                fixTimes = false /* [0-9]{10} */;
                 gitstats = exec('git', [
                     '--git-dir=' + folder + '/.git',
                     'log',
                     '--format=%at'
                 ]);
             } else if (isMercurial(folder)) {
+                fixTimes = false /* [0-9]{10}\.[0-9]{6} */;
                 gitstats = exec('hg', [
                     'log',
                     '--template={date}\n',
                     folder
                 ]);
+            } else if (isSubversion(folder)) {
+                fixTimes = true /* [0-9]{16} */;
+                gitstats = exec('sqlite3', [
+                    folder + '/.svn/wc.db',
+                    'SELECT changed_date FROM NODES;'
+                ]);
             }
 
             if (gitstats !== undefined && gitstats.status === 0) {
-                timestamps = gitstats.stdout.toString();
-                lines = timestamps.split('\n');
+                output = gitstats.stdout.toString();
+                lines = extractTimestamps(output, fixTimes);
                 history = history.concat(lines);
             }
         }

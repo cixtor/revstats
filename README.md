@@ -6,11 +6,11 @@ But what about your contributions in private projects hosted in other services? 
 
 ### Features
 
-The script can process multiple repositories at the same time, you just need to include a hidden JSON file in your home directory name `~/.revstats.json` with a list of the directories that you want to analyze.
+The script can process multiple repositories at the same time, you just need to include a hidden JSON file in your home directory named `.revstats.json` with a list of the directories that you want to analyze. Currently the script supports Git, Mercurial, and Subversion repositories; more may be added in the future.
 
 - [x] Git — https://en.wikipedia.org/wiki/Git_(software)
 - [x] Mercurial — https://en.wikipedia.org/wiki/Mercurial
-- [ ] Subversion — https://en.wikipedia.org/wiki/Apache_Subversion
+- [x] Subversion — https://en.wikipedia.org/wiki/Apache_Subversion
 
 ```
 $ cat ~/.revstats.json

@@ -4,6 +4,23 @@ GitHub introduced a [calendar with the contributions](https://github.com/blog/13
 
 But what about your contributions in private projects hosted in other services? This project aims to allow people to see their contributions int he same format as GitHub pointing the script to the directories where the private repositories reside in your computer's disk.
 
+### Features
+
+The script can process multiple repositories at the same time, you just need to include a hidden JSON file in your home directory name `~/.revstats.json` with a list of the directories that you want to analyze.
+
+- [x] Git — https://en.wikipedia.org/wiki/Git_(software)
+- [x] Mercurial — https://en.wikipedia.org/wiki/Mercurial
+- [ ] Subversion — https://en.wikipedia.org/wiki/Apache_Subversion
+
+```
+$ cat ~/.revstats.json
+[
+  "/home/username/projects/git-repository",
+  "/home/username/projects/mercurial-repo",
+  "/home/username/projects/subversion-repo"
+]
+```
+
 ![Contribution Calendar](screenshot.png)
 
 ### Public Non-Code Contributions

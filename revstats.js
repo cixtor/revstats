@@ -6,6 +6,21 @@ Math.maxInArray = function (list) {
     return Math.max.apply(null, list);
 };
 
+var printUsageAndOptions = function() {
+    console.log('Revision Control Statistics');
+    console.log('  http://cixtor.com/');
+    console.log('  https://github.com/cixtor/revstats');
+    console.log('  https://en.wikipedia.org/wiki/Revision_control');
+    console.log('  https://en.wikipedia.org/wiki/Git_(software)');
+    console.log('  https://en.wikipedia.org/wiki/Mercurial');
+    console.log('  https://en.wikipedia.org/wiki/Apache_Subversion');
+    console.log('Usage:');
+    console.log('  -help      Displays this message.');
+    console.log('  -details   Displays streak and productivity data.');
+    console.log('  -missing   Displays empty days between the calendar.');
+    process.exit(2);
+};
+
 var secondsPerDay = function() {
     return 86400 /* 60 secs * 60 mins * 24 hours */;
 };
@@ -404,9 +419,14 @@ var renderCalendar = function (commits) {
 
 var settings = homeDirectory() + '/.revstats.json';
 
+if (flag('help')) {
+    printUsageAndOptions();
+}
+
 fsys.readFile(settings, 'utf8', function (err, content) {
     if (err) {
-        throw err;
+        console.log('Missing ~/.revstats.json file');
+        printUsageAndOptions();
     } else {
         var projects = JSON.parse(content);
 

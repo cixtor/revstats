@@ -296,6 +296,7 @@ var longestStreak = function (commits) {
     var streak = 0;
     var quantity = 0;
     var streakHistory = [];
+    var printMissing = flag('missing');
     var weeks = weeksInCalendar(commits.calendar);
 
     for (var week = 0; week < weeks; week++) {
@@ -308,12 +309,15 @@ var longestStreak = function (commits) {
 
                     if (quantity === 0) {
                         streakHistory.push(streak);
-                        console.log(
-                            '\x20\x20\x20\x20\x20',
-                            'Missing commit:',
-                            commits.calendar[abbr][week].date
-                        );
                         streak = 0;
+
+                        if (printMissing === true) {
+                            console.log(
+                                '\x20\x20\x20\x20\x20',
+                                'Missing commit:',
+                                commits.calendar[abbr][week].date
+                            );
+                        }
                     } else {
                         streak += quantity; /* Count commits */
                         // streak++; /* Count contributions */

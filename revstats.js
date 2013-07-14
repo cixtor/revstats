@@ -14,6 +14,25 @@ var homeDirectory = function() {
     return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
 };
 
+var flag = function (name) {
+    var present = false;
+    var double = '--' + name;
+    var single = '-' + name;
+
+    for (var arg in process.argv) {
+        if (process.argv.hasOwnProperty(arg)) {
+            if (process.argv[arg] === double ||
+                process.argv[arg] === single
+            ) {
+                present = true;
+                break;
+            }
+        }
+    }
+
+    return present;
+};
+
 var yyyymmdd = function (ts, gmt) {
     var dref = new Date(ts * 1000);
 
@@ -48,6 +67,18 @@ var isGit = function (folder) {
     return true;
 };
 
+var isMercurial = function (folder) {
+    var path = folder + '/.hg/hgrc';
+
+    try {
+        fsys.accessSync(path, fsys.F_OK);
+    } catch (e) {
+        return false;
+    }
+
+    return true;
+};
+
 var getAllCommits = function (projects, callback) {
     var folder;
     var gitstats;
@@ -64,6 +95,12 @@ var getAllCommits = function (projects, callback) {
                     '--git-dir=' + folder + '/.git',
                     'log',
                     '--format=%at'
+                ]);
+            } else if (isMercurial(folder)) {
+                gitstats = exec('hg', [
+                    'log',
+                    '--template={date}\n',
+                    folder
                 ]);
             }
 
@@ -342,20 +379,7 @@ var renderCalendar = function (commits) {
         }
     }
 
-    var printDetails = false;
-
-    if (commits.calendar !== undefined) {
-        for (var arg in process.argv) {
-            if (process.argv.hasOwnProperty(arg)) {
-                if (process.argv[arg] === '--details') {
-                    printDetails = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (printDetails === true) {
+    if (commits.calendar && flag('details')) {
         process.stdout.write('\x20\x20\x20\x20\x20\x20');
         process.stdout.write('Oldest: ' + new Date(commits.oldest * 1000).toString() + '\n');
 

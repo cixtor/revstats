@@ -34,7 +34,19 @@ var weekdayFromTime = function (ts) {
     var weekday = weekdays[dref.getDay()];
 
     return weekday;
-}
+};
+
+var isGit = function (folder) {
+    var path = folder + '/.git/config';
+
+    try {
+        fsys.accessSync(path, fsys.F_OK);
+    } catch (e) {
+        return false;
+    }
+
+    return true;
+};
 
 var getAllCommits = function (projects, callback) {
     var folder;
@@ -45,10 +57,17 @@ var getAllCommits = function (projects, callback) {
 
     for (var key in projects) {
         if (projects.hasOwnProperty(key)) {
-            folder = projects[key] + '/.git';
-            gitstats = exec('git', ['--git-dir=' + folder, 'log', '--format=%at']);
+            folder = projects[key];
 
-            if (gitstats.status === 0) {
+            if (isGit(folder)) {
+                gitstats = exec('git', [
+                    '--git-dir=' + folder + '/.git',
+                    'log',
+                    '--format=%at'
+                ]);
+            }
+
+            if (gitstats !== undefined && gitstats.status === 0) {
                 timestamps = gitstats.stdout.toString();
                 lines = timestamps.split('\n');
                 history = history.concat(lines);
@@ -278,21 +297,23 @@ var printCalendarHeader = function (calendar) {
     var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May',
     'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    process.stdout.write('\x20\x20\x20\x20\x20\x20');
+    if (calendar !== undefined) {
+        process.stdout.write('\x20\x20\x20\x20\x20\x20');
 
-    for (var key in calendar.Sun) {
-        if (calendar.Sun.hasOwnProperty(key)) {
-            date = new Date(calendar.Sun[key].date);
-            month = date.getMonth();
+        for (var key in calendar.Sun) {
+            if (calendar.Sun.hasOwnProperty(key)) {
+                date = new Date(calendar.Sun[key].date);
+                month = date.getMonth();
 
-            if (month !== lastMonth) {
-                lastMonth = month;
-                process.stdout.write(months[month] + '\x20');
+                if (month !== lastMonth) {
+                    lastMonth = month;
+                    process.stdout.write(months[month] + '\x20');
+                }
             }
         }
-    }
 
-    process.stdout.write('\n');
+        process.stdout.write('\n');
+    }
 };
 
 var renderCalendar = function (commits) {
@@ -323,11 +344,13 @@ var renderCalendar = function (commits) {
 
     var printDetails = false;
 
-    for (var arg in process.argv) {
-        if (process.argv.hasOwnProperty(arg)) {
-            if (process.argv[arg] === '--details') {
-                printDetails = true;
-                break;
+    if (commits.calendar !== undefined) {
+        for (var arg in process.argv) {
+            if (process.argv.hasOwnProperty(arg)) {
+                if (process.argv[arg] === '--details') {
+                    printDetails = true;
+                    break;
+                }
             }
         }
     }

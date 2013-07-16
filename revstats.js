@@ -14,7 +14,7 @@ var homeDirectory = function() {
     return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
 };
 
-var yyyymmdd = function(ts, gmt) {
+var yyyymmdd = function (ts, gmt) {
     var dref = new Date(ts * 1000);
 
     if (gmt === true) {
@@ -27,6 +27,14 @@ var yyyymmdd = function(ts, gmt) {
 
     return (year + '-' + month + '-' + day);
 };
+
+var weekdayFromTime = function (ts) {
+    var dref = new Date(ts * 1000);
+    var weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    var weekday = weekdays[dref.getDay()];
+
+    return weekday;
+}
 
 var getAllCommits = function (projects, callback) {
     var folder;
@@ -117,27 +125,40 @@ var populateCalendar = function (commits) {
         'Fri': [],
         'Sat': [],
     };
-    var daysPerWeek = 7; /* Number of days per week */
     var weekdays = Object.keys(calendar);
     var oneday = secondsPerDay();
-    var position = 0;
     var quantity = 0;
-    var modulus = 0;
     var counter = 0;
     var weekday = 0;
+    var weeks = 0;
     var date;
 
     for (var ts = commits.initial; ts < commits.final; ts += oneday) {
+        weeks++;
         counter++;
-        modulus = (counter % daysPerWeek);
-
-        if (modulus === 0) {
-            modulus = daysPerWeek;
-        }
 
         date = yyyymmdd(ts);
-        position = (modulus - 1);
-        weekday = weekdays[position];
+        weekday = weekdayFromTime(ts);
+
+        /**
+         * Add padding on first calendar week.
+         *
+         * The first week in the calendar might contain empty days, not
+         * days without commits but days that are not part of the analysis.
+         * For this we have to adding a padding if the calendar starts a
+         * different day than Sunday.
+         */
+        if (weeks === 1) {
+            for (var wday in weekdays) {
+                if (weekdays.hasOwnProperty(wday)) {
+                    if (weekdays[wday] === weekday) {
+                        break;
+                    }
+
+                    calendar[weekdays[wday]].push({date: null, commits: -1});
+                }
+            }
+        }
 
         if (commits.history.hasOwnProperty(date)) {
             quantity = commits.history[date];
@@ -187,10 +208,14 @@ var colorizeCommits = function (quantity, most) {
         '\u001b[48;5;027m\u0020\u001b[0m',
     ];
 
-    var percentage = Math.ceil((quantity * 5) / most);
-    var highlight = colors[percentage - 1];
+    if (quantity === -1) {
+        process.stdout.write('\u0020');
+    } else {
+        var percentage = Math.ceil((quantity * 5) / most);
+        var highlight = colors[percentage - 1];
 
-    process.stdout.write(highlight);
+        process.stdout.write(highlight);
+    }
 };
 
 var weeksInCalendar = function (calendar) {

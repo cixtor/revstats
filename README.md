@@ -1,4 +1,4 @@
-### Contribution Calendar
+### Revision Control Statistics
 
 GitHub introduced a calendar with the contributions associated to each user account [1] back in 2013. The contributions calendar shows how frequently you've been contributing over the past year. However, this only applies to contributions to public repositories hosted on GitHub, and as of May 19, 2016 they allowed private repositories too [2]. This also makes it easier to see what others are working on in your Organization. Any repositories you have in common with the profile you're viewing are shown in this list.
 

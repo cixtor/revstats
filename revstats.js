@@ -1,7 +1,6 @@
 #!/usr/bin/env node
+var fsys = require('fs');
 var exec = require('child_process').spawnSync;
-
-var projects = [process.argv[2]];
 
 Math.maxInArray = function (list) {
     return Math.max.apply(null, list);
@@ -9,6 +8,10 @@ Math.maxInArray = function (list) {
 
 var secondsPerDay = function() {
     return 86400 /* 60 secs * 60 mins * 24 hours */;
+};
+
+var homeDirectory = function() {
+    return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
 };
 
 var yyyymmdd = function(ts, gmt) {
@@ -323,9 +326,19 @@ var renderCalendar = function (commits) {
     }
 };
 
-getAllCommits(projects, function (commits) {
-    var stats = countCommits(commits);
-    var calendar = populateCalendar(stats);
+var settings = homeDirectory() + '/.revstats.json';
 
-    renderCalendar(calendar);
+fsys.readFile(settings, 'utf8', function (err, content) {
+    if (err) {
+        throw err;
+    } else {
+        var projects = JSON.parse(content);
+
+        getAllCommits(projects, function (commits) {
+            var stats = countCommits(commits);
+            var calendar = populateCalendar(stats);
+
+            renderCalendar(calendar);
+        });
+    }
 });

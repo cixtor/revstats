@@ -177,11 +177,11 @@ var getProductivityStats = function (commits) {
 
 var colorizeCommits = function (quantity, most) {
     var colors = [
-        '\u001b[48;5;046m\u0020\u001b[0m',
-        '\u001b[48;5;040m\u0020\u001b[0m',
-        '\u001b[48;5;034m\u0020\u001b[0m',
-        '\u001b[48;5;028m\u0020\u001b[0m',
-        '\u001b[48;5;022m\u0020\u001b[0m',
+        '\u001b[48;5;051m\u0020\u001b[0m',
+        '\u001b[48;5;045m\u0020\u001b[0m',
+        '\u001b[48;5;039m\u0020\u001b[0m',
+        '\u001b[48;5;033m\u0020\u001b[0m',
+        '\u001b[48;5;027m\u0020\u001b[0m',
     ];
 
     var percentage = Math.ceil((quantity * 5) / most);

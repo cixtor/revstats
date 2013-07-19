@@ -3,6 +3,10 @@ var exec = require('child_process').spawnSync;
 
 var projects = [process.argv[2]];
 
+Math.maxInArray = function (list) {
+    return Math.max.apply(null, list);
+};
+
 var secondsPerDay = function() {
     return 86400 /* 60 secs * 60 mins * 24 hours */;
 };
@@ -289,21 +293,34 @@ var renderCalendar = function (commits) {
         }
     }
 
-    process.stdout.write('\x20\x20\x20\x20\x20\x20');
-    process.stdout.write('Oldest: ' + new Date(commits.oldest * 1000).toString() + '\n');
+    var printDetails = false;
 
-    process.stdout.write('\x20\x20\x20\x20\x20\x20');
-    process.stdout.write('Newest: ' + new Date(commits.newest * 1000).toString() + '\n');
+    for (var arg in process.argv) {
+        if (process.argv.hasOwnProperty(arg)) {
+            if (process.argv[arg] === '--details') {
+                printDetails = true;
+                break;
+            }
+        }
+    }
 
-    process.stdout.write('\x20\x20\x20\x20\x20\x20');
-    process.stdout.write('Most Productive Day: ' + productivity.most + ' commits\n');
+    if (printDetails === true) {
+        process.stdout.write('\x20\x20\x20\x20\x20\x20');
+        process.stdout.write('Oldest: ' + new Date(commits.oldest * 1000).toString() + '\n');
 
-    process.stdout.write('\x20\x20\x20\x20\x20\x20');
-    process.stdout.write('Less Productive Day: ' + productivity.less + ' commits\n');
+        process.stdout.write('\x20\x20\x20\x20\x20\x20');
+        process.stdout.write('Newest: ' + new Date(commits.newest * 1000).toString() + '\n');
 
-    var streak = longestStreak(commits);
-    process.stdout.write('\x20\x20\x20\x20\x20\x20');
-    process.stdout.write('Longest Streak: ' + streak + '\n');
+        process.stdout.write('\x20\x20\x20\x20\x20\x20');
+        process.stdout.write('Most Productive Day: ' + productivity.most + ' commits\n');
+
+        process.stdout.write('\x20\x20\x20\x20\x20\x20');
+        process.stdout.write('Less Productive Day: ' + productivity.less + ' commits\n');
+
+        var streak = longestStreak(commits);
+        process.stdout.write('\x20\x20\x20\x20\x20\x20');
+        process.stdout.write('Longest Streak: ' + streak + '\n');
+    }
 };
 
 getAllCommits(projects, function (commits) {

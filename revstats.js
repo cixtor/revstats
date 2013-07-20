@@ -262,3 +262,53 @@ var printCalendarHeader = function (calendar) {
 
     process.stdout.write('\n');
 };
+
+var renderCalendar = function (commits) {
+    var productivity = getProductivityStats(commits);
+    var commitsPerDay = 0;
+
+    printCalendarHeader(commits.calendar);
+
+    for (var abbr in commits.calendar) {
+        if (commits.calendar.hasOwnProperty(abbr)) {
+            var todalDays = commits.calendar[abbr].length;
+
+            process.stdout.write(abbr + '\x20\x20\x20');
+
+            for (var key = 0; key < todalDays; key++) {
+                commitsPerDay = commits.calendar[abbr][key].commits;
+
+                if (commitsPerDay === 0) {
+                    process.stdout.write('\u001b[0;90m\u2591\u001b[0m');
+                } else {
+                    colorizeCommits(commitsPerDay, productivity.most);
+                }
+            }
+
+            process.stdout.write('\n');
+        }
+    }
+
+    process.stdout.write('\x20\x20\x20\x20\x20\x20');
+    process.stdout.write('Oldest: ' + new Date(commits.oldest * 1000).toString() + '\n');
+
+    process.stdout.write('\x20\x20\x20\x20\x20\x20');
+    process.stdout.write('Newest: ' + new Date(commits.newest * 1000).toString() + '\n');
+
+    process.stdout.write('\x20\x20\x20\x20\x20\x20');
+    process.stdout.write('Most Productive Day: ' + productivity.most + ' commits\n');
+
+    process.stdout.write('\x20\x20\x20\x20\x20\x20');
+    process.stdout.write('Less Productive Day: ' + productivity.less + ' commits\n');
+
+    var streak = longestStreak(commits);
+    process.stdout.write('\x20\x20\x20\x20\x20\x20');
+    process.stdout.write('Longest Streak: ' + streak + '\n');
+};
+
+getAllCommits(projects, function (commits) {
+    var stats = countCommits(commits);
+    var calendar = populateCalendar(stats);
+
+    renderCalendar(calendar);
+});

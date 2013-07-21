@@ -240,3 +240,25 @@ var longestStreak = function (commits) {
 
     return Math.maxInArray(streakHistory);
 };
+
+var printCalendarHeader = function (calendar) {
+    var date, month, lastMonth;
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May',
+    'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    process.stdout.write('\x20\x20\x20\x20\x20\x20');
+
+    for (var key in calendar.Sun) {
+        if (calendar.Sun.hasOwnProperty(key)) {
+            date = new Date(calendar.Sun[key].date);
+            month = date.getMonth();
+
+            if (month !== lastMonth) {
+                lastMonth = month;
+                process.stdout.write(months[month] + '\x20');
+            }
+        }
+    }
+
+    process.stdout.write('\n');
+};

@@ -202,3 +202,41 @@ var weeksInCalendar = function (calendar) {
 
     return total;
 };
+
+var longestStreak = function (commits) {
+    var abbr;
+    var streak = 0;
+    var quantity = 0;
+    var streakHistory = [];
+    var weeks = weeksInCalendar(commits.calendar);
+
+    for (var week = 0; week < weeks; week++) {
+        for (var day in commits.weekdays) {
+            if (commits.weekdays.hasOwnProperty(day)) {
+                abbr = commits.weekdays[day];
+
+                if (commits.calendar[abbr].hasOwnProperty(week)) {
+                    quantity = commits.calendar[abbr][week].commits;
+
+                    if (quantity === 0) {
+                        streakHistory.push(streak);
+                        console.log(
+                            '\x20\x20\x20\x20\x20',
+                            'Missing commit:',
+                            commits.calendar[abbr][week].date
+                        );
+                        streak = 0;
+                    } else {
+                        streak += quantity; /* Count commits */
+                        // streak++; /* Count contributions */
+                    }
+                }
+            }
+        }
+    }
+
+    // Append most recent streak.
+    streakHistory.push(streak);
+
+    return Math.maxInArray(streakHistory);
+};

@@ -185,3 +185,20 @@ var colorizeCommits = function (quantity, most) {
 
     process.stdout.write(highlight);
 };
+
+var weeksInCalendar = function (calendar) {
+    var total = 0;
+    var weeks = 0;
+
+    for (var key in calendar) {
+        if (calendar.hasOwnProperty(key)) {
+            weeks = calendar[key].length;
+
+            if (weeks > total) {
+                total = weeks;
+            }
+        }
+    }
+
+    return total;
+};

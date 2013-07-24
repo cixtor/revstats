@@ -170,3 +170,18 @@ var getProductivityStats = function (commits) {
 
     return {most: mostProdDay, less: lessProdDay};
 };
+
+var colorizeCommits = function (quantity, most) {
+    var colors = [
+        '\u001b[48;5;046m\u0020\u001b[0m',
+        '\u001b[48;5;040m\u0020\u001b[0m',
+        '\u001b[48;5;034m\u0020\u001b[0m',
+        '\u001b[48;5;028m\u0020\u001b[0m',
+        '\u001b[48;5;022m\u0020\u001b[0m',
+    ];
+
+    var percentage = Math.ceil((quantity * 5) / most);
+    var highlight = colors[percentage - 1];
+
+    process.stdout.write(highlight);
+};

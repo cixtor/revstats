@@ -146,3 +146,27 @@ var populateCalendar = function (commits) {
 
     return commits;
 };
+
+var getProductivityStats = function (commits) {
+    var quantity = 0;
+    var mostProdDay = 0;
+    var lessProdDay = 1;
+
+    for (var key in commits.history) {
+        if (commits.history.hasOwnProperty(key)) {
+            quantity = commits.history[key];
+
+            if (quantity > 0) {
+                if (quantity > mostProdDay) {
+                    mostProdDay = quantity;
+                }
+
+                if (quantity < lessProdDay) {
+                    lessProdDay = quantity;
+                }
+            }
+        }
+    }
+
+    return {most: mostProdDay, less: lessProdDay};
+};

@@ -99,3 +99,50 @@ var countCommits = function (commits) {
 
     return false;
 };
+
+var populateCalendar = function (commits) {
+    var calendar = {
+        'Sun': [],
+        'Mon': [],
+        'Tue': [],
+        'Wed': [],
+        'Thu': [],
+        'Fri': [],
+        'Sat': [],
+    };
+    var daysPerWeek = 7; /* Number of days per week */
+    var weekdays = Object.keys(calendar);
+    var oneday = secondsPerDay();
+    var position = 0;
+    var quantity = 0;
+    var modulus = 0;
+    var counter = 0;
+    var weekday = 0;
+    var date;
+
+    for (var ts = commits.initial; ts < commits.final; ts += oneday) {
+        counter++;
+        modulus = (counter % daysPerWeek);
+
+        if (modulus === 0) {
+            modulus = daysPerWeek;
+        }
+
+        date = yyyymmdd(ts);
+        position = (modulus - 1);
+        weekday = weekdays[position];
+
+        if (commits.history.hasOwnProperty(date)) {
+            quantity = commits.history[date];
+        } else {
+            quantity = 0;
+        }
+
+        calendar[weekday].push({date: date, commits: quantity});
+    }
+
+    commits.calendar = calendar;
+    commits.weekdays = weekdays;
+
+    return commits;
+};

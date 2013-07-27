@@ -13,6 +13,8 @@ But what about your contributions in private projects hosted in other services? 
 
 GitHub not only counts the number commits and pull-requests but also when you open an issue. If you are using this tool offline it is be a good idea to include references to public issues that you have open so far.
 
+- [x] _(2013-07-27)_ Kindari/laravel-markdown/issues/1
+
 ### License
 
 ```

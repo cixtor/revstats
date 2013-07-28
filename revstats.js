@@ -43,3 +43,59 @@ var getAllCommits = function (projects, callback) {
 
     callback(history);
 };
+
+var countCommits = function (commits) {
+    if (commits.length > 0) {
+        var oldest = commits[0];
+        var newest = commits[0];
+        var history = {};
+        var line, date;
+
+        for (var key in commits) {
+            if (commits.hasOwnProperty(key) && commits[key] !== '') {
+                line = commits[key];
+                date = yyyymmdd(commits[key]);
+
+                if (line >= newest) {
+                    newest = line;
+                }
+
+                if (line <= oldest) {
+                    oldest = line;
+                }
+
+                if (history.hasOwnProperty(date)) {
+                    history[date]++;
+                } else {
+                    history[date] = 1;
+                }
+            }
+        }
+
+        var oneday = secondsPerDay();
+        var current = new Date(oldest * 1000);
+        var initial = current.getTime() / 1000;
+        var maximum = Math.ceil((newest - oldest) / oneday);
+        var final = initial + (oneday * maximum);
+        var today = Math.floor(new Date().getTime() / 1000);
+        var lastYear = today - (365 * oneday);
+
+        if (lastYear < initial) {
+            initial = lastYear;
+        }
+
+        if (today > final) {
+            final = today;
+        }
+
+        return {
+            history: history,
+            initial: initial,
+            oldest: oldest,
+            newest: newest,
+            final: final
+        };
+    }
+
+    return false;
+};

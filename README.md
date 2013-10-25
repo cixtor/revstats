@@ -18,6 +18,9 @@ GitHub not only counts the number commits and pull-requests but also when you op
 - [x] _(2013-08-15)_ appjs/appjs/issues/381
 - [x] _(2013-08-30)_ cixtor/mamutools/issues/1
 - [x] _(2013-10-04)_ laravel/laravel/issues/2341
+- [x] _(2013-10-25)_ jfmatt/twittertron-interface/issues/1
+- [x] _(2013-10-25)_ proimond/formularios_cnc/issues/1
+- [x] _(2013-10-25)_ epan/gmaps/issues/1
 
 ### License
 

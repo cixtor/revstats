@@ -31,6 +31,7 @@ GitHub not only counts the number commits and pull-requests but also when you op
 - [x] _(2013-10-27)_ artisanchurch/prototype/issues/1
 - [x] _(2013-10-27)_ NightWoo/ams/issues/1
 - [x] _(2013-10-27)_ virusvn/iMeeting/issues/1
+- [x] _(2014-03-02)_ spadgos/sublime-jsdocs/issues/254
 
 ### License
 

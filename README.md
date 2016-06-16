@@ -12,7 +12,7 @@ The script can process multiple repositories at the same time, you just need to 
 - [x] Mercurial — https://en.wikipedia.org/wiki/Mercurial
 - [x] Subversion — https://en.wikipedia.org/wiki/Apache_Subversion
 
-```
+```shell
 $ cat ~/.revstats.json
 [
   "/home/username/projects/git-repository",
@@ -61,6 +61,8 @@ GitHub not only counts the number commits and pull-requests but also when you op
 - [x] _(2014-03-02)_ spadgos/sublime-jsdocs/issues/254
 - [x] _(2014-03-03)_ spadgos/sublime-jsdocs/issues/255
 - [x] _(2014-03-30)_ sayakb/sticky-notes/issues/99
+- [x] _(2016-06-16)_ sucuri/sucuri-wordpress-plugin/pull/9
+- [x] _(2016-06-16)_ sucuri/sucuri-wordpress-plugin/pull/10
 
 ### License
 

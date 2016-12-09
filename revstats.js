@@ -480,6 +480,9 @@ var longestStreak = function (commits) {
     var streak = {days: 0, marks: 0};
     var history = {days: [], marks: []};
     var printMissing = flag('missing');
+    var filterYear = flag('year', true);
+    var thisYear = '0000'; /* missing commits*/
+
     weeks = weeksInCalendar(commits.unified);
 
     for (var week = 0; week < weeks; week++) {
@@ -500,6 +503,14 @@ var longestStreak = function (commits) {
                     streak.days = 0;
 
                     if (printMissing && started && !finished) {
+                        thisYear = data.date.substring(0, 4);
+
+                        if (filterYear !== null &&
+                            filterYear !== false &&
+                            filterYear !== thisYear) {
+                            continue;
+                        }
+
                         console.log(
                             '\x20\x20\x20\x20\x20',
                             'Missing commit:',

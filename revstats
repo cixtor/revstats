@@ -1,2 +1,10 @@
 #!/bin/bash
-node $(dirname $0)/revstats.js "$@"
+if command -v node &> /dev/null; then
+    CWD=$(dirname "$0") # Current folder
+    node "${CWD}/revstats.js" "$@"
+else
+    echo "Node.JS is missing"
+    echo "apt install node.js"
+    echo "brew install node.js"
+    exit 1
+fi

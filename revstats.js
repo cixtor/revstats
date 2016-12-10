@@ -210,36 +210,38 @@ var getAllCommits = function (projects, callback) {
     var fixTimes = false;
 
     for (var key in projects) {
-        if (projects.hasOwnProperty(key)) {
-            folder = projects[key];
+        if (!projects.hasOwnProperty(key)) {
+            continue;
+        }
 
-            if (isGit(folder)) {
-                fixTimes = false /* [0-9]{10} */;
-                gitstats = exec('git', [
-                    '--git-dir=' + folder + '/.git',
-                    'log',
-                    '--format=%at'
-                ]);
-            } else if (isMercurial(folder)) {
-                fixTimes = false /* [0-9]{10}\.[0-9]{6} */;
-                gitstats = exec('hg', [
-                    'log',
-                    '--template={date}\n',
-                    folder
-                ]);
-            } else if (isSubversion(folder)) {
-                fixTimes = true /* [0-9]{16} */;
-                gitstats = exec('sqlite3', [
-                    folder + '/.svn/wc.db',
-                    'SELECT changed_date FROM NODES;'
-                ]);
-            }
+        folder = projects[key];
 
-            if (gitstats !== undefined && gitstats.status === 0) {
-                output = gitstats.stdout.toString();
-                lines = extractTimestamps(output, fixTimes);
-                history = history.concat(lines);
-            }
+        if (isGit(folder)) {
+            fixTimes = false /* [0-9]{10} */;
+            gitstats = exec('git', [
+                '--git-dir=' + folder + '/.git',
+                'log',
+                '--format=%at'
+            ]);
+        } else if (isMercurial(folder)) {
+            fixTimes = false /* [0-9]{10}\.[0-9]{6} */;
+            gitstats = exec('hg', [
+                'log',
+                '--template={date}\n',
+                folder
+            ]);
+        } else if (isSubversion(folder)) {
+            fixTimes = true /* [0-9]{16} */;
+            gitstats = exec('sqlite3', [
+                folder + '/.svn/wc.db',
+                'SELECT changed_date FROM NODES;'
+            ]);
+        }
+
+        if (gitstats !== undefined && gitstats.status === 0) {
+            output = gitstats.stdout.toString();
+            lines = extractTimestamps(output, fixTimes);
+            history = history.concat(lines);
         }
     }
 
@@ -247,86 +249,88 @@ var getAllCommits = function (projects, callback) {
 };
 
 var countCommits = function (commits) {
-    if (commits.length > 0) {
-        var oldest = commits[0];
-        var newest = commits[0];
-        var history = {};
-        var line, date;
-
-        for (var key in commits) {
-            if (commits.hasOwnProperty(key) && commits[key] !== '') {
-                line = commits[key];
-                date = yyyymmdd(commits[key]);
-
-                if (line >= newest) {
-                    newest = line;
-                }
-
-                if (line <= oldest) {
-                    oldest = line;
-                }
-
-                if (history.hasOwnProperty(date)) {
-                    history[date]++;
-                } else {
-                    history[date] = 1;
-                }
-            }
-        }
-
-        var oneday = secondsPerDay();
-        var inidate = new Date(oldest * 1000);
-        var initial = inidate.getTime() / 1000;
-        var maximum = Math.ceil((newest - oldest) / oneday);
-        var final = initial + (oneday * maximum);
-
-        /**
-         * Fix initial date of the oldest commit.
-         *
-         * If the oldest commit starts in the middle of the year we have to
-         * recalculate the initial date to start from Jan 01 of the same year,
-         * this will give us the ability to render a full calendar as we will
-         * have access to all days.
-         */
-        var oldYear = new Date(initial * 1000).getFullYear();
-        var oldDate = (oldYear).toString() + '-01-01 00:00:01';
-        initial = new Date(oldDate).getTime();
-
-        /**
-         * Fix final date of the newest commit.
-         *
-         * If the newest commit finishes in the middle of the year we have to
-         * recalculate the final date to end at Dec 31 of the same year, this
-         * will give us the ability to render a full calendar as we will have
-         * access to all days.
-         */
-        var newYear = new Date(final * 1000).getFullYear();
-        var newDate = (newYear).toString() + '-12-31 23:59:59';
-        final = new Date(newDate).getTime();
-
-        // Mark today as the last contribution.
-        var today = new Date();
-        var todayTime = (today.getTime() / 1000);
-        var todayDate = yyyymmdd(todayTime);
-
-        // Calculate total years.
-        var years = (newYear - oldYear);
-        initial = (initial / 1000);
-        final = (final / 1000);
-
-        return {
-            todayDate: todayDate,
-            todayTime: todayTime,
-            history: history,
-            initial: initial,
-            oldest: oldest,
-            newest: newest,
-            final: final,
-            years: years
-        };
+    if (commits.length < 1) {
+        return false;
     }
 
-    return false;
+    var oldest = commits[0];
+    var newest = commits[0];
+    var history = {};
+    var line, date;
+
+    for (var key in commits) {
+        if (!commits.hasOwnProperty(key) || commits[key] === '') {
+            continue;
+        }
+
+        line = commits[key];
+        date = yyyymmdd(commits[key]);
+
+        if (line >= newest) {
+            newest = line;
+        }
+
+        if (line <= oldest) {
+            oldest = line;
+        }
+
+        if (history.hasOwnProperty(date)) {
+            history[date]++;
+        } else {
+            history[date] = 1;
+        }
+    }
+
+    var oneday = secondsPerDay();
+    var inidate = new Date(oldest * 1000);
+    var initial = inidate.getTime() / 1000;
+    var maximum = Math.ceil((newest - oldest) / oneday);
+    var final = initial + (oneday * maximum);
+
+    /**
+     * Fix initial date of the oldest commit.
+     *
+     * If the oldest commit starts in the middle of the year we have to
+     * recalculate the initial date to start from Jan 01 of the same year,
+     * this will give us the ability to render a full calendar as we will
+     * have access to all days.
+     */
+    var oldYear = new Date(initial * 1000).getFullYear();
+    var oldDate = (oldYear).toString() + '-01-01 00:00:01';
+    initial = new Date(oldDate).getTime();
+
+    /**
+     * Fix final date of the newest commit.
+     *
+     * If the newest commit finishes in the middle of the year we have to
+     * recalculate the final date to end at Dec 31 of the same year, this
+     * will give us the ability to render a full calendar as we will have
+     * access to all days.
+     */
+    var newYear = new Date(final * 1000).getFullYear();
+    var newDate = (newYear).toString() + '-12-31 23:59:59';
+    final = new Date(newDate).getTime();
+
+    // Mark today as the last contribution.
+    var today = new Date();
+    var todayTime = (today.getTime() / 1000);
+    var todayDate = yyyymmdd(todayTime);
+
+    // Calculate total years.
+    var years = (newYear - oldYear);
+    initial = (initial / 1000);
+    final = (final / 1000);
+
+    return {
+        todayDate: todayDate,
+        todayTime: todayTime,
+        history: history,
+        initial: initial,
+        oldest: oldest,
+        newest: newest,
+        final: final,
+        years: years
+    };
 };
 
 var populateCalendar = function (commits) {
@@ -403,24 +407,32 @@ var getProductivityStats = function (commits) {
     var lessProdDay = 1;
 
     for (var key in commits.history) {
-        if (commits.history.hasOwnProperty(key)) {
-            quantity = commits.history[key];
+        if (!commits.history.hasOwnProperty(key)) {
+            continue;
+        }
 
-            if (quantity > 0) {
-                total += quantity;
+        quantity = commits.history[key];
 
-                if (quantity > mostProdDay) {
-                    mostProdDay = quantity;
-                }
+        if (quantity < 1) {
+            continue;
+        }
 
-                if (quantity < lessProdDay) {
-                    lessProdDay = quantity;
-                }
-            }
+        total += quantity;
+
+        if (quantity > mostProdDay) {
+            mostProdDay = quantity;
+        }
+
+        if (quantity < lessProdDay) {
+            lessProdDay = quantity;
         }
     }
 
-    return {most: mostProdDay, less: lessProdDay, total: total};
+    return {
+        most: mostProdDay,
+        less: lessProdDay,
+        total: total
+    };
 };
 
 var getColorScheme = function () {
@@ -448,12 +460,13 @@ var getCalendarColors = function () {
 var colorizeCommits = function (colors, quantity, most) {
     if (quantity === -1) {
         process.stdout.write('\u0020');
-    } else {
-        var percentage = Math.ceil((quantity * 5) / most);
-        var highlight = colors[percentage - 1];
-
-        process.stdout.write(highlight);
+        return;
     }
+
+    var percentage = Math.ceil((quantity * 5) / most);
+    var highlight = colors[percentage - 1];
+
+    process.stdout.write(highlight);
 };
 
 var weeksInCalendar = function (calendar) {
@@ -461,12 +474,14 @@ var weeksInCalendar = function (calendar) {
     var weeks = 0;
 
     for (var key in calendar) {
-        if (calendar.hasOwnProperty(key)) {
-            weeks = calendar[key].length;
+        if (!calendar.hasOwnProperty(key)) {
+            continue;
+        }
 
-            if (weeks > total) {
-                total = weeks;
-            }
+        weeks = calendar[key].length;
+
+        if (weeks > total) {
+            total = weeks;
         }
     }
 
@@ -489,39 +504,42 @@ var longestStreak = function (commits) {
         for (var day in commits.weekdays) {
             weekday = commits.weekdays[day];
 
-            if (commits.unified[weekday].hasOwnProperty(week)) {
-                data = commits.unified[weekday][week];
+            if (!commits.unified[weekday].hasOwnProperty(week)) {
+                continue;
+            }
 
-                if (data.date === commits.todayDate) {
-                    finished = true;
-                }
+            data = commits.unified[weekday][week];
 
-                if (data.commits === 0) {
-                    history.marks.push(streak.marks);
-                    history.days.push(streak.days);
-                    streak.marks = 0;
-                    streak.days = 0;
+            if (data.date === commits.todayDate) {
+                finished = true;
+            }
 
-                    if (printMissing && started && !finished) {
-                        thisYear = data.date.substring(0, 4);
+            if (data.commits === 0) {
+                history.marks.push(streak.marks);
+                history.days.push(streak.days);
+                streak.marks = 0;
+                streak.days = 0;
 
-                        if (filterYear !== null &&
-                            filterYear !== false &&
-                            filterYear !== thisYear) {
-                            continue;
-                        }
+                if (printMissing && started && !finished) {
+                    thisYear = data.date.substring(0, 4);
 
-                        console.log(
-                            '\x20\x20\x20\x20\x20',
-                            'Missing commit:',
-                            data.date
-                        );
+                    /* Skip if commits are from different year */
+                    if (filterYear !== null &&
+                        filterYear !== false &&
+                        filterYear !== thisYear) {
+                        continue;
                     }
-                } else if (data.commits > 0) {
-                    started = true; /* Started contributions */
-                    streak.days += 1; /* Count contributions */
-                    streak.marks += data.commits; /* Count commits */
+
+                    console.log(
+                        '\x20\x20\x20\x20\x20',
+                        'Missing commit:',
+                        data.date
+                    );
                 }
+            } else if (data.commits > 0) {
+                started = true; /* Started contributions */
+                streak.days += 1; /* Count contributions */
+                streak.marks += data.commits; /* Count commits */
             }
         }
     }
@@ -564,15 +582,17 @@ var printCalendarHeader = function (year, calendar) {
         process.stdout.write('\u0020\u0020');
 
         for (var part in header) {
-            if (header.hasOwnProperty(part)) {
-                partLength = header[part].length;
+            if (!header.hasOwnProperty(part)) {
+                continue;
+            }
 
-                if (partLength >= 5) {
-                    partDiff = (partLength - 2);
-                    process.stdout.write(header[part].slice(0, partDiff));
-                } else {
-                    process.stdout.write('\u0020');
-                }
+            partLength = header[part].length;
+
+            if (partLength >= 5) {
+                partDiff = (partLength - 2);
+                process.stdout.write(header[part].slice(0, partDiff));
+            } else {
+                process.stdout.write('\u0020');
             }
         }
 
@@ -597,23 +617,25 @@ var renderCalendar = function (commits) {
             printCalendarHeader(year, yearCommits);
 
             for (var weekday in yearCommits) {
-                if (yearCommits.hasOwnProperty(weekday)) {
-                    var todalDays = yearCommits[weekday].length;
-
-                    process.stdout.write(weekday + '\u0020\u0020\u0020');
-
-                    for (var key = 0; key < todalDays; key++) {
-                        commitsPerDay = yearCommits[weekday][key].commits;
-
-                        if (commitsPerDay === 0) {
-                            process.stdout.write('\u001b[0;90m\u2591\u001b[0m');
-                        } else {
-                            colorizeCommits(colors, commitsPerDay, productivity.most);
-                        }
-                    }
-
-                    process.stdout.write('\n');
+                if (!yearCommits.hasOwnProperty(weekday)) {
+                    continue;
                 }
+
+                var todalDays = yearCommits[weekday].length;
+
+                process.stdout.write(weekday + '\u0020\u0020\u0020');
+
+                for (var key = 0; key < todalDays; key++) {
+                    commitsPerDay = yearCommits[weekday][key].commits;
+
+                    if (commitsPerDay === 0) {
+                        process.stdout.write('\u001b[0;90m\u2591\u001b[0m');
+                    } else {
+                        colorizeCommits(colors, commitsPerDay, productivity.most);
+                    }
+                }
+
+                process.stdout.write('\n');
             }
 
             process.stdout.write('\n');
@@ -661,21 +683,22 @@ fsys.readFile(settings, 'utf8', function (err, content) {
     if (err) {
         println('Missing ~/.revstats.json file');
         printUsageAndOptions();
-    } else {
-        var projects = [/* Empty list */];
-        var repo = flag('repo', true);
-
-        if (fileExists(repo)) {
-            projects = [repo];
-        } else {
-            projects = JSON.parse(content);
-        }
-
-        getAllCommits(projects, function (commits) {
-            var stats = countCommits(commits);
-            var calendar = populateCalendar(stats);
-
-            renderCalendar(calendar);
-        });
+        return;
     }
+
+    var projects = [/* Empty list */];
+    var repo = flag('repo', true);
+
+    if (fileExists(repo)) {
+        projects = [repo];
+    } else {
+        projects = JSON.parse(content);
+    }
+
+    getAllCommits(projects, function (commits) {
+        var stats = countCommits(commits);
+        var calendar = populateCalendar(stats);
+
+        renderCalendar(calendar);
+    });
 });

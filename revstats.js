@@ -253,6 +253,8 @@ var countCommits = function (commits) {
         return false;
     }
 
+    var thisYear = '0000'; /* date:yyyy */
+    var filterYear = flag('year', true);
     var oldest = commits[0];
     var newest = commits[0];
     var history = {};
@@ -265,6 +267,14 @@ var countCommits = function (commits) {
 
         line = commits[key];
         date = yyyymmdd(commits[key]);
+        thisYear = date.substring(0, 4);
+
+        /* Do not count commits from other years */
+        if (filterYear !== null &&
+            filterYear !== false &&
+            filterYear !== thisYear) {
+            continue;
+        }
 
         if (line >= newest) {
             newest = line;

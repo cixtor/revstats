@@ -245,6 +245,10 @@ var getAllCommits = function (projects, callback) {
         }
     }
 
+    if (history.length) {
+        history.sort();
+    }
+
     callback(history);
 };
 
@@ -253,12 +257,12 @@ var countCommits = function (commits) {
         return false;
     }
 
-    var thisYear = '0000'; /* date:yyyy */
-    var filterYear = flag('year', true);
-    var oldest = commits[0];
-    var newest = commits[0];
-    var history = {};
     var line, date;
+    var history = {};
+    var oldest = commits[0];
+    var newest = 0; /* Safe numeral */
+    var filterYear = flag('year', true);
+    var thisYear = '0000'; /* date:yyyy */
 
     for (var key in commits) {
         if (!commits.hasOwnProperty(key) || commits[key] === '') {
@@ -284,11 +288,12 @@ var countCommits = function (commits) {
             oldest = line;
         }
 
-        if (history.hasOwnProperty(date)) {
-            history[date]++;
-        } else {
-            history[date] = 1;
+        /* Days are initialized with zero commits */
+        if (!history.hasOwnProperty(date)) {
+            history[date] = 0;
         }
+
+        history[date]++; /* Add one commit this day */
     }
 
     var oneday = secondsPerDay();

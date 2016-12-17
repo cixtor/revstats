@@ -259,7 +259,7 @@ var countCommits = function (commits) {
 
     var line, date;
     var history = {};
-    var oldest = commits[0];
+    var oldest = 9000000000;
     var newest = 0; /* Safe numeral */
     var filterYear = flag('year', true);
     var thisYear = '0000'; /* date:yyyy */

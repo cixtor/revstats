@@ -201,8 +201,25 @@ var extractTimestamps = function (output, fixTimes) {
     return lines;
 };
 
-var getGitAuthor = function () {
-    var result = exec('git', ['config', '--get', 'user.name']);
+var getGitAuthor = function (folder) {
+    var result = exec('git', [
+        '--git-dir=' + folder + '/.git',
+        'config',
+        '--get',
+        'user.name'
+    ]);
+    if (result === undefined || result.status !== 0) {
+        return ''; /* return empty author name */
+    }
+    return result.stdout.toString().trim();
+};
+
+var getMercurialAuthor = function (folder) {
+    var result = exec('hg', [
+        'config',
+        'ui.username',
+        '--repository=' + folder
+    ]);
     if (result === undefined || result.status !== 0) {
         return ''; /* return empty author name */
     }
@@ -214,9 +231,9 @@ var getAllCommits = function (projects, callback) {
     var gitstats;
     var lines = [];
     var output = '';
+    var author = '';
     var history = [];
     var fixTimes = false;
-    var gitAuthor = getGitAuthor();
 
     for (var key in projects) {
         if (!projects.hasOwnProperty(key)) {
@@ -226,19 +243,22 @@ var getAllCommits = function (projects, callback) {
         folder = projects[key];
 
         if (isGit(folder)) {
+            author = getGitAuthor(folder);
             fixTimes = false /* [0-9]{10} */;
             gitstats = exec('git', [
                 '--git-dir=' + folder + '/.git',
                 'log' /* action before options */,
-                '--author=' + gitAuthor,
+                '--author=' + author,
                 '--format=%at'
             ]);
         } else if (isMercurial(folder)) {
+            author = getMercurialAuthor(folder);
             fixTimes = false /* [0-9]{10}\.[0-9]{6} */;
             gitstats = exec('hg', [
                 'log',
                 '--template={date}\n',
-                folder
+                '--user=' + author,
+                '--repository=' + folder,
             ]);
         } else if (isSubversion(folder)) {
             fixTimes = true /* [0-9]{16} */;

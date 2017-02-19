@@ -201,6 +201,14 @@ var extractTimestamps = function (output, fixTimes) {
     return lines;
 };
 
+var getGitAuthor = function () {
+    var result = exec('git', ['config', '--get', 'user.name']);
+    if (result === undefined || result.status !== 0) {
+        return ''; /* return empty author name */
+    }
+    return result.stdout.toString().trim();
+};
+
 var getAllCommits = function (projects, callback) {
     var folder;
     var gitstats;
@@ -208,6 +216,7 @@ var getAllCommits = function (projects, callback) {
     var output = '';
     var history = [];
     var fixTimes = false;
+    var gitAuthor = getGitAuthor();
 
     for (var key in projects) {
         if (!projects.hasOwnProperty(key)) {
@@ -220,7 +229,8 @@ var getAllCommits = function (projects, callback) {
             fixTimes = false /* [0-9]{10} */;
             gitstats = exec('git', [
                 '--git-dir=' + folder + '/.git',
-                'log',
+                'log' /* action before options */,
+                '--author=' + gitAuthor,
                 '--format=%at'
             ]);
         } else if (isMercurial(folder)) {
